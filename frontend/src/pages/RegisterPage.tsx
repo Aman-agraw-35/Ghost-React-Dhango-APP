@@ -2,10 +2,11 @@ import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import throttle from "lodash.throttle";
-import { Link, useNavigate } from "react-router-dom"; // updated here
+import { Link, useNavigate } from "react-router-dom";
+import type { FormEvent } from "react"; // ✅ Fixes 'verbatimModuleSyntax' error
 
 const Register = () => {
-  const navigate = useNavigate(); // added
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -57,6 +58,7 @@ const Register = () => {
     return isValid;
   };
 
+  // ✅ Throttle registration calls
   const throttledRegister = useCallback(
     throttle(async (data) => {
       try {
@@ -66,13 +68,9 @@ const Register = () => {
           },
         });
         toast.success("Registered successfully!");
-        navigate("/login"); // ⬅ redirected to login
         setFormData({ username: "", email: "", password: "" });
+        navigate("/login"); // ✅ Redirect to login
       } catch (error: any) {
-        console.error(
-          "Registration Error:",
-          error.response?.data || error.message
-        );
         const errMsg = error.response?.data?.detail || "Registration failed!";
         toast.error(errMsg);
         if (error.response?.data?.username) {
@@ -82,11 +80,11 @@ const Register = () => {
           }));
         }
       }
-    }, 2000),
+    }, 2000), // 2-second throttle window
     [navigate]
   );
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     throttledRegister(formData);
@@ -118,9 +116,13 @@ const Register = () => {
           className="w-full p-2 border rounded"
           placeholder="Email"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, email: e.target.value })
+          }
         />
-        {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+        {errors.email && (
+          <p className="text-sm text-red-500">{errors.email}</p>
+        )}
       </div>
 
       <div>
