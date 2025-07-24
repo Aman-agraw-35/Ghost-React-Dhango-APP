@@ -1,21 +1,25 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Login from './pages/LoginPage';
+import Register from './pages/RegisterPage';
+import { ToastContainer } from 'react-toastify';
 
-const App = () => {
+const App: React.FC = () => {
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-grow">
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Routes>
-        </div>
-        <Footer />
-      </div>
-    </Router>
+    <div className="min-h-screen flex flex-col bg-cover bg-center" style={{ backgroundImage: 'url("https://source.unsplash.com/1600x900/?technology")' }}>
+      <Navbar />
+      <main className="flex-grow flex justify-center items-center p-4">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </main>
+      <Footer />
+      <ToastContainer />
+    </div>
   );
 };
+
+export default App;
