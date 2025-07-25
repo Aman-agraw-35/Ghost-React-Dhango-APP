@@ -26,7 +26,7 @@ const Login = () => {
   const throttledLogin = useCallback(
     throttle(async (username: string, password: string) => {
       try {
-        const res = await axios.post('http://localhost:8000/api/login/', { username, password });
+        const res = await axios.post('https://ghost-react-dhango-app.onrender.com/api/login/', { username, password });
         localStorage.setItem('access', res.data.access);
         toast.success('Logged in successfully!');
         navigate('/');

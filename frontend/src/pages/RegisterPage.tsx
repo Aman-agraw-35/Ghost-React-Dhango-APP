@@ -73,7 +73,7 @@ const Register = () => {
   const throttledRegister = useCallback(
     throttle(async (data: RegisterData) => {
       try {
-        await axios.post("http://localhost:8000/api/register/", data, {
+        await axios.post("https://ghost-react-dhango-app.onrender.com/api/login/", data, {
           headers: { "Content-Type": "application/json" },
         });
         toast.success("Registered successfully!");
