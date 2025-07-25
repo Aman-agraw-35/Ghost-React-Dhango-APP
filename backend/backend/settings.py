@@ -100,6 +100,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:5173",
+    "https://ghost-react-dhango-app-1.onrender.com"
 ]
 
 # Django REST Framework
