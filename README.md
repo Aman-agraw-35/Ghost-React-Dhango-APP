@@ -1,4 +1,3 @@
-﻿# Ghost-React-Dhango-APP
 # 👻 Ghost React Django App
 
 A full-stack web application built with **React + Vite** for the frontend and **Django** (with Django REST Framework) for the backend. The app supports **JWT-based authentication**, responsive UI, and API-driven interactions.
