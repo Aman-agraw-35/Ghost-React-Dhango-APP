@@ -1,28 +1,41 @@
 import { useState, useCallback } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "react-toastify";
 import throttle from "lodash.throttle";
 import { Link, useNavigate } from "react-router-dom";
-import type { FormEvent } from "react"; // ✅ Fixes 'verbatimModuleSyntax' error
+import type { FormEvent } from "react";
+
+interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface ErrorResponse {
+  detail?: string;
+  username?: string[];
+  email?: string[];
+  password?: string[];
+}
 
 const Register = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterData>({
     username: "",
     email: "",
     password: "",
   });
 
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<RegisterData>({
     username: "",
     email: "",
     password: "",
   });
 
-  const validate = () => {
+  const validate = (): boolean => {
     const { username, email, password } = formData;
-    const newErrors = { username: "", email: "", password: "" };
+    const newErrors: RegisterData = { username: "", email: "", password: "" };
     let isValid = true;
 
     if (!username.trim()) {
@@ -49,8 +62,7 @@ const Register = () => {
       !/[A-Z]/.test(password) ||
       !/[0-9]/.test(password)
     ) {
-      newErrors.password =
-        "Password must be 8+ chars, incl. number & uppercase";
+      newErrors.password = "Password must be 8+ chars, incl. number & uppercase";
       isValid = false;
     }
 
@@ -58,102 +70,117 @@ const Register = () => {
     return isValid;
   };
 
-  // ✅ Throttle registration calls
   const throttledRegister = useCallback(
-    throttle(async (data) => {
+    throttle(async (data: RegisterData) => {
       try {
         await axios.post("http://localhost:8000/api/register/", data, {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
         toast.success("Registered successfully!");
         setFormData({ username: "", email: "", password: "" });
-        navigate("/login"); // ✅ Redirect to login
-      } catch (error: any) {
-        const errMsg = error.response?.data?.detail || "Registration failed!";
-        toast.error(errMsg);
-        if (error.response?.data?.username) {
+        navigate("/login");
+      } catch (err) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (axios.isAxiosError(error)) {
+          const resData = error.response?.data;
+          toast.error(resData?.detail || "Registration failed!");
+
           setErrors((prev) => ({
             ...prev,
-            username: error.response.data.username[0],
+            username: resData?.username?.[0] || "",
+            email: resData?.email?.[0] || "",
+            password: resData?.password?.[0] || "",
           }));
+        } else {
+          toast.error("An unexpected error occurred.");
         }
       }
-    }, 2000), // 2-second throttle window
+    }, 2000),
     [navigate]
   );
 
-  const handleRegister = async (e: FormEvent) => {
+  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
     throttledRegister(formData);
   };
 
   return (
-    <form
-      onSubmit={handleRegister}
-      className="bg-white bg-opacity-80 p-6 rounded shadow-md w-full max-w-md space-y-4"
-    >
-      <h2 className="text-2xl font-bold">Register</h2>
-
-      <div>
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Username"
-          value={formData.username}
-          onChange={(e) =>
-            setFormData({ ...formData, username: e.target.value })
-          }
-        />
-        {errors.username && (
-          <p className="text-sm text-red-500">{errors.username}</p>
-        )}
-      </div>
-
-      <div>
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) =>
-            setFormData({ ...formData, email: e.target.value })
-          }
-        />
-        {errors.email && (
-          <p className="text-sm text-red-500">{errors.email}</p>
-        )}
-      </div>
-
-      <div>
-        <input
-          className="w-full p-2 border rounded"
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) =>
-            setFormData({ ...formData, password: e.target.value })
-          }
-        />
-        {errors.password && (
-          <p className="text-sm text-red-500">{errors.password}</p>
-        )}
-      </div>
-
-      <button
-        type="submit"
-        className="w-full bg-black text-white p-2 rounded hover:bg-gray-800"
+    <div className="h-[77vh] flex items-center justify-center bg-gray-100">
+      <form
+        onSubmit={handleRegister}
+        className="bg-white p-8 rounded-xl shadow-lg w-[20vw] max-w-md space-y-6"
       >
-        Register
-      </button>
+        <h2 className="text-3xl font-bold text-center">Register</h2>
 
-      <p className="text-sm text-gray-600 text-center">
-        Already have an account?{" "}
-        <Link to="/login" className="text-blue-500 hover:underline">
-          Login here
-        </Link>
-      </p>
-    </form>
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">
+            Username
+          </label>
+          <input
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="Enter username"
+            value={formData.username}
+            onChange={(e) =>
+              setFormData({ ...formData, username: e.target.value })
+            }
+          />
+          {errors.username && (
+            <p className="text-sm text-red-500">{errors.username}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <input
+            type="email"
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="Enter email"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+          />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">
+            Password
+          </label>
+          <input
+            type="password"
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="Enter password"
+            value={formData.password}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+          />
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password}</p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-1 rounded hover:bg-blue-700 items-center justify-center transition-colors duration-200 font-medium"
+        >
+          Register
+        </button>
+
+        <p className="text-sm text-gray-600 text-center">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-500 hover:underline">
+            Login here
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 };
 
